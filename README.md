@@ -23,10 +23,10 @@ Microsoft Graph PowerShell SDK: Install the Microsoft Graph PowerShell SDK to in
 Install-Module Microsoft.Graph -Scope CurrentUser
 
 Intune Permissions: Ensure your account has the necessary permissions to manage Intune configurations and assignments. Required permissions include:
-User.Read.All
-Group.Read.All
-Device.Read.All
-DeviceManagementConfiguration.ReadWrite.All
-DeviceManagementApps.ReadWrite.All
-DeviceManagementManagedDevices.ReadWrite.All
-DeviceManagementServiceConfig.ReadWrite.All
+- User.Read.All
+- Group.Read.All
+- Device.Read.All
+- DeviceManagementConfiguration.ReadWrite.All
+- DeviceManagementApps.ReadWrite.All
+- DeviceManagementManagedDevices.ReadWrite.All
+- DeviceManagementServiceConfig.ReadWrite.All
