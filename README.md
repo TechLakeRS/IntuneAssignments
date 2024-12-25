@@ -14,6 +14,21 @@ Change Tracking: Compare configurations before and after updates to track change
 
 Permission Checks: Verify required permissions and prompt for missing permissions to ensure smooth execution.
 
+Support for the following:
+- deviceConfigurations
+- configurationPolicies
+- groupPolicyConfigurations
+- deviceCompliancePolicies
+- deviceManagementScripts
+- deviceHealthScripts
+- windowsQualityUpdateProfiles
+- windowsAutopilotDeploymentProfiles
+- windowsDriverUpdateProfiles  
+- windowsFeatureUpdateProfiles   
+- EnrollmentConfigurations
+
+* Add Assignment to AutopilotDeploymentProfiles still in progress *
+
 # Prerequisites
 
 PowerShell: Ensure you have PowerShell installed on your system.
