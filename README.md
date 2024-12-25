@@ -26,6 +26,7 @@ Support for the following:
 - windowsDriverUpdateProfiles  
 - windowsFeatureUpdateProfiles   
 - EnrollmentConfigurations
+- MobileApps
 
 * Add Assignment to AutopilotDeploymentProfiles still in progress *
 
