@@ -23,6 +23,7 @@ function Update-Actions {
         'EnrollmentConfigs' = 'Enrollment Configurations'
         'MdmWindowsInformationProtectionPolicies' = 'Windows Information Protection'
         'MobileApps' = 'Apps'
+        'SecurityRules' = 'ASR'
     }
 
     foreach ($op in $operations.Keys) {
@@ -325,6 +326,44 @@ function Update-EnrollmentConfigs {
     }
 }
 
+function Update-SecurityRules {
+    param([string]$targetGroupId)
+    
+    foreach ($config in $global:allConfigurations.SecurityRules) {
+        try {
+            $currentUri = "https://graph.microsoft.com/beta/deviceManagement/intents/$($config.id)/assignments"
+            $current = Invoke-MgGraphRequest -Uri $currentUri
+            if (Test-ExistingAssignment -CurrentAssignments $current -TargetGroupId $targetGroupId -ItemName $config.Name) { continue }
+            
+            $body = @{
+                assignments = @(
+                    $current.value | ForEach-Object {
+                        @{
+                            target = @{
+                                "@odata.type" = "#microsoft.graph.groupAssignmentTarget"
+                                groupId = $_.target.groupId
+                            }
+                        }
+                    }
+                    @{
+                        target = @{
+                            "@odata.type" = "#microsoft.graph.groupAssignmentTarget"
+                            groupId = $targetGroupId
+                        }
+                    }
+                )
+            } | ConvertTo-Json -Depth 10
+            
+            $uri = "https://graph.microsoft.com/beta/deviceManagement/intents/$($config.id)/assign"
+            Invoke-MgGraphRequest -Uri $uri -Method POST -Body $body
+            Write-Host "  Updated $($config.Name)" -ForegroundColor Green
+        }
+        catch {
+            Write-Warning "  Failed $($config.Name): $_"
+        }
+    }
+}
+
 function Update-MdmWindowsInformationProtectionPolicies {
     param([string]$targetGroupId)
     
@@ -366,23 +405,37 @@ function Update-MobileApps {
             
             $sourceAssignment = $current.value | Where-Object { $_.target.groupId -eq $sourceId }
             $intent = if ($sourceAssignment) { $sourceAssignment.intent } else { "Required" }
-
+ 
+            $assignment = @{
+                target = @{
+                    "@odata.type" = "#microsoft.graph.groupAssignmentTarget"
+                    groupId = $targetGroupId
+                }
+                intent = $intent
+            }
+ 
+            if ($sourceAssignment.settings) {
+                $assignment.settings = @{
+                    '@odata.type' = $sourceAssignment.settings.'@odata.type'
+                    notifications = $sourceAssignment.settings.notifications
+                    installTimeSettings = $sourceAssignment.settings.installTimeSettings
+                    restartSettings = $sourceAssignment.settings.restartSettings
+                    deliveryOptimizationPriority = $sourceAssignment.settings.deliveryOptimizationPriority
+                }
+            }
+ 
             $body = @{
-                mobileAppAssignments = @($current.value + @{
-                    target = @{
-                        "@odata.type" = "#microsoft.graph.groupAssignmentTarget"
-                        groupId = $targetGroupId
-                    }
-                    intent = $intent
-                })
+                mobileAppAssignments = @($current.value + $assignment)
             } | ConvertTo-Json -Depth 10
             
             $uri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$($app.id)/assign"
             Invoke-MgGraphRequest -Uri $uri -Method POST -Body $body
             Write-Host "  Added $($app.Name) with intent '$intent'" -ForegroundColor Green
+            Add-UpdateStatus -ItemName $app.Name
         }
         catch {
             Write-Warning "  Failed to add $($app.Name): $_"  
         }
     }
-}
+ }
+
